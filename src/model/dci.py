@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 from time import time
-from sklearn.externals.joblib import Parallel, delayed
+from joblib import Parallel, delayed
 from sklearn.preprocessing import normalize
+
 
 class DCI:
     """
@@ -34,7 +35,7 @@ class DCI:
             if dcf not in self.valid_dcf:
                 raise ValueError("unknown dcf; use any in [%s]" % ', '.join(self.valid_dcf))
             if dcf == 'cosine': self.dcf = cosine
-            if dcf == 'pmi': self.dcf = PMI
+            if dcf == 'pmi': self.dcf = pmi
             if dcf == 'linear': self.dcf = linear
         elif hasattr(dcf, '__call__'):
             self.dcf = dcf
@@ -43,7 +44,7 @@ class DCI:
 
         self.post = post
         self.domains = None
-        self.dFP = None
+        self.dE = None
         self.n_jobs = n_jobs
         self.unify = unify
         self.verbose = verbose
@@ -76,7 +77,7 @@ class DCI:
 
         # embed the feature space from each domain using the pivots of that domain
         transformations = Parallel(n_jobs=self.n_jobs)(delayed(dcf_dist)(dU[d].transpose(), dU[d][:,dP[d]].transpose(), self.dcf) for d in self.domains)
-        self.dFP = {d: transformations[i] for i, d in enumerate(self.domains)}
+        self.dE = {d: transformations[i] for i, d in enumerate(self.domains)}
         self.unification(self.dP) # pivots are always unified
         if self.unify: # unify (non-pivots) common-terms
             if dV is not None:
@@ -95,19 +96,19 @@ class DCI:
 
     # unifies all embeddings from dFP of the indexes in the dictionary dIndexes
     def unification(self, dIndexes):
-        unified_matrix = np.array([self.dFP[d][dIndexes[d]] for d in self.domains]).mean(axis=0)
+        unified_matrix = np.array([self.dE[d][dIndexes[d]] for d in self.domains]).mean(axis=0)
         for d in self.domains:
-            self.dFP[d][dIndexes[d]] = unified_matrix
+            self.dE[d][dIndexes[d]] = unified_matrix
 
 
     # dX is a dictionary of {domain:dsm}, where dsm (distributional semantic model) is, e.g., a document-by-term csr_matrix
     def transform(self, dX):
-        assert self.dFP is not None, 'transform method called before fit'
+        assert self.dE is not None, 'transform method called before fit'
         assert set(dX.keys()).issubset(self.domains), 'domains in dX are not scope'
         t_init=time()
         domains = list(dX.keys())
 
-        transformations = Parallel(n_jobs=self.n_jobs)(delayed(_dom_transform)(dX[d], self.dFP[d], self.post) for d in domains)
+        transformations = Parallel(n_jobs=self.n_jobs)(delayed(_dom_transform)(dX[d], self.dE[d], self.post) for d in domains)
         transformations = {d: transformations[i] for i, d in enumerate(domains)}
 
         self.transform_time=time()-t_init
@@ -120,7 +121,8 @@ class DCI:
     def __str__(self):
         return "DCI({})".format(self.dcf.__name__)
 
-def zscores(x): #scipy.stats.zscores does not avoid division by 0, which can indeed occur
+
+def zscores(x):  #scipy.stats.zscores does not avoid division by 0, which can indeed occur
     std = np.clip(np.std(x, axis=0), 1e-5, None)
     mean = np.mean(x, axis=0)
     return (x - mean) / std
@@ -164,7 +166,7 @@ def cosine(F, P):
     return cos - prev_factor
 
 
-def PMI(F, P):
+def pmi(F, P):
     nF,D = F.shape
 
     F=1*(F>0)
