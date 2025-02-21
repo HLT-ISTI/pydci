@@ -22,7 +22,7 @@ This implementation (pyDCI) is described and tested in :
 
 Extensions of DCI:
 
-* Lost in Transduction: Transductive Transfer Learning in Text Classification, A Moreo, A Esuli, F Sebastiani, ACM Transactions on Knowledge Discovery from Data. Forthcoming.
+* Lost in Transduction: Transductive Transfer Learning in Text Classification, A Moreo, A Esuli, F Sebastiani, ACM Transactions on Knowledge Discovery from Data. Volume 16, Issue 1, Article No.: 13, Pages 1 - 21 [pdf](https://doi.org/10.1145/3453146)
 * Cross-lingual sentiment quantification, A Esuli, A Moreo, F Sebastiani, IEEE Intelligent Systems 35 (3), 106-114 [pdf](https://ieeexplore.ieee.org/abstract/document/9131128/)
 * Transductive Distributional Correspondence Indexing for Cross-Domain Topic Classification, A Moreo, A Esuli, and F Sebastiani IIR. 2016. [pdf](http://ceur-ws.org/Vol-1653/paper_5.pdf)
 
@@ -88,4 +88,5 @@ MDS         0.833375
 A bunch of scripts have been added to replicate experiments using TDCI (the transductive 
 variant of DCI for cross-lingual and cross-domain adaptation). Those scripts are marked
 with a "_transductive" postfix. SVMlight is required in order to make them work.
-The paper discussing this variant and the results is currently under review.
+The paper discussing this variant and the results is available at: 
+* Lost in Transduction: Transductive Transfer Learning in Text Classification, A Moreo, A Esuli, F Sebastiani, ACM Transactions on Knowledge Discovery from Data. Volume 16, Issue 1, Article No.: 13, Pages 1 - 21 [pdf](https://doi.org/10.1145/3453146)
